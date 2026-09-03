@@ -1,0 +1,37 @@
+{
+  "name": "api-monitoring-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "worker": "tsx scripts/run-worker.ts",
+    "db:init": "tsx scripts/init-db.ts"
+  },
+  "dependencies": {
+    "axios": "^1.8.1",
+    "bullmq": "^5.41.6",
+    "clsx": "^2.1.1",
+    "ioredis": "^5.6.0",
+    "lucide-react": "^0.475.0",
+    "next": "15.1.7",
+    "pg": "^8.13.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "@types/pg": "^8.11.11",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
