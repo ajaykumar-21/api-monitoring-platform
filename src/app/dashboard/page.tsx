@@ -1,8 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Activity, Plus, RefreshCw, AlertTriangle, CheckCircle2, Clock, Play, ArrowUpRight, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import {
+  Activity,
+  Plus,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Play,
+  ArrowUpRight,
+  ExternalLink,
+  Pencil,
+} from "lucide-react";
 
 interface Monitor {
   id: string;
@@ -11,7 +22,7 @@ interface Monitor {
   method: string;
   intervalSec: number;
   expectedStatus: number;
-  currentStatus: 'UP' | 'DOWN' | 'DEGRADED';
+  currentStatus: "UP" | "DOWN" | "DEGRADED";
   isActive: boolean;
   uptimePercentage: number;
   avgResponseTimeMs: number;
@@ -28,11 +39,11 @@ export default function DashboardPage() {
 
   const fetchMonitors = async () => {
     try {
-      const res = await fetch('/api/monitors');
+      const res = await fetch("/api/monitors");
       const data = await res.json();
       setMonitors(data.monitors || []);
     } catch (err) {
-      console.error('Failed to fetch monitors:', err);
+      console.error("Failed to fetch monitors:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -50,10 +61,10 @@ export default function DashboardPage() {
     e.stopPropagation();
     setTestingId(id);
     try {
-      await fetch(`/api/monitors/${id}/check`, { method: 'POST' });
+      await fetch(`/api/monitors/${id}/check`, { method: "POST" });
       await fetchMonitors();
     } catch (err) {
-      console.error('Failed trigger ping:', err);
+      console.error("Failed trigger ping:", err);
     } finally {
       setTestingId(null);
     }
@@ -61,17 +72,25 @@ export default function DashboardPage() {
 
   // Aggregates
   const totalMonitors = monitors.length;
-  const upMonitors = monitors.filter((m) => m.currentStatus === 'UP').length;
-  const downMonitors = monitors.filter((m) => m.currentStatus === 'DOWN').length;
+  const upMonitors = monitors.filter((m) => m.currentStatus === "UP").length;
+  const downMonitors = monitors.filter(
+    (m) => m.currentStatus === "DOWN",
+  ).length;
 
   const avgSystemUptime =
     totalMonitors > 0
-      ? (monitors.reduce((acc, m) => acc + m.uptimePercentage, 0) / totalMonitors).toFixed(2)
-      : '100.00';
+      ? (
+          monitors.reduce((acc, m) => acc + m.uptimePercentage, 0) /
+          totalMonitors
+        ).toFixed(2)
+      : "100.00";
 
   const avgSystemLatency =
     totalMonitors > 0
-      ? Math.round(monitors.reduce((acc, m) => acc + m.avgResponseTimeMs, 0) / totalMonitors)
+      ? Math.round(
+          monitors.reduce((acc, m) => acc + m.avgResponseTimeMs, 0) /
+            totalMonitors,
+        )
       : 0;
 
   return (
@@ -86,7 +105,8 @@ export default function DashboardPage() {
             </span>
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            Real-time status, latency metrics, and background health checks for your APIs.
+            Real-time status, latency metrics, and background health checks for
+            your APIs.
           </p>
         </div>
 
@@ -99,7 +119,9 @@ export default function DashboardPage() {
             className="p-2 rounded-lg bg-gray-800/80 text-gray-300 hover:text-white hover:bg-gray-700/80 border border-gray-700 transition-colors"
             title="Refresh monitors"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+            />
           </button>
 
           <Link
@@ -120,8 +142,12 @@ export default function DashboardPage() {
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-white">{avgSystemUptime}%</span>
-            <span className="text-xs text-emerald-400 font-medium">Last 24 hours</span>
+            <span className="text-3xl font-extrabold text-white">
+              {avgSystemUptime}%
+            </span>
+            <span className="text-xs text-emerald-400 font-medium">
+              Last 24 hours
+            </span>
           </div>
         </div>
 
@@ -131,21 +157,31 @@ export default function DashboardPage() {
             <Activity className="w-4 h-4 text-cyan-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-white">{upMonitors}</span>
-            <span className="text-xs text-gray-400 font-medium">/ {totalMonitors} Operational</span>
+            <span className="text-3xl font-extrabold text-white">
+              {upMonitors}
+            </span>
+            <span className="text-xs text-gray-400 font-medium">
+              / {totalMonitors} Operational
+            </span>
           </div>
         </div>
 
         <div className="bg-[#131927] border border-gray-800 p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between text-gray-400 text-xs font-semibold uppercase tracking-wider">
             <span>Open Incidents</span>
-            <AlertTriangle className={`w-4 h-4 ${downMonitors > 0 ? 'text-red-400' : 'text-gray-500'}`} />
+            <AlertTriangle
+              className={`w-4 h-4 ${downMonitors > 0 ? "text-red-400" : "text-gray-500"}`}
+            />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className={`text-3xl font-extrabold ${downMonitors > 0 ? 'text-red-400' : 'text-white'}`}>
+            <span
+              className={`text-3xl font-extrabold ${downMonitors > 0 ? "text-red-400" : "text-white"}`}
+            >
               {downMonitors}
             </span>
-            <span className="text-xs text-gray-400 font-medium">Down Endpoint{downMonitors !== 1 ? 's' : ''}</span>
+            <span className="text-xs text-gray-400 font-medium">
+              Down Endpoint{downMonitors !== 1 ? "s" : ""}
+            </span>
           </div>
         </div>
 
@@ -155,8 +191,12 @@ export default function DashboardPage() {
             <Clock className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-white">{avgSystemLatency}ms</span>
-            <span className="text-xs text-gray-400 font-medium">Average Latency</span>
+            <span className="text-3xl font-extrabold text-white">
+              {avgSystemLatency}ms
+            </span>
+            <span className="text-xs text-gray-400 font-medium">
+              Average Latency
+            </span>
           </div>
         </div>
       </div>
@@ -165,8 +205,12 @@ export default function DashboardPage() {
       <div className="bg-[#131927] border border-gray-800 rounded-2xl shadow-lg overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-800/80 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-white">Monitored Endpoints</h2>
-            <p className="text-xs text-gray-400">Pinging every 1-5 minutes to verify HTTP status & latency</p>
+            <h2 className="text-lg font-bold text-white">
+              Monitored Endpoints
+            </h2>
+            <p className="text-xs text-gray-400">
+              Pinging every 1-5 minutes to verify HTTP status & latency
+            </p>
           </div>
           <Link
             href="/status/system-status"
@@ -189,7 +233,9 @@ export default function DashboardPage() {
               <Activity className="w-6 h-6" />
             </div>
             <div className="max-w-md mx-auto">
-              <h3 className="text-base font-semibold text-white">No monitors configured yet</h3>
+              <h3 className="text-base font-semibold text-white">
+                No monitors configured yet
+              </h3>
               <p className="text-xs text-gray-400 mt-1">
                 Add an API endpoint to start tracking uptime and response times.
               </p>
@@ -207,7 +253,7 @@ export default function DashboardPage() {
         ) : (
           <div className="divide-y divide-gray-800/80">
             {monitors.map((m) => {
-              const isUp = m.currentStatus === 'UP';
+              const isUp = m.currentStatus === "UP";
               return (
                 <div
                   key={m.id}
@@ -240,7 +286,9 @@ export default function DashboardPage() {
                           {m.method}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-400 font-mono truncate mt-0.5 max-w-lg">{m.url}</div>
+                      <div className="text-xs text-gray-400 font-mono truncate mt-0.5 max-w-lg">
+                        {m.url}
+                      </div>
                     </div>
                   </div>
 
@@ -249,19 +297,27 @@ export default function DashboardPage() {
                     {/* Uptime % */}
                     <div className="text-right">
                       <div className="flex items-center space-x-1.5 justify-end">
-                        <span className={`text-sm font-bold font-mono ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <span
+                          className={`text-sm font-bold font-mono ${isUp ? "text-emerald-400" : "text-red-400"}`}
+                        >
                           {m.uptimePercentage.toFixed(2)}%
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-500 block">24h Uptime</span>
+                      <span className="text-[10px] text-gray-500 block">
+                        24h Uptime
+                      </span>
                     </div>
 
                     {/* Response Time */}
                     <div className="text-right min-w-[80px]">
                       <div className="text-sm font-bold font-mono text-gray-200">
-                        {m.latestResponseTimeMs !== null ? `${m.latestResponseTimeMs}ms` : '—'}
+                        {m.latestResponseTimeMs !== null
+                          ? `${m.latestResponseTimeMs}ms`
+                          : "—"}
                       </div>
-                      <span className="text-[10px] text-gray-500 block">Latency</span>
+                      <span className="text-[10px] text-gray-500 block">
+                        Latency
+                      </span>
                     </div>
 
                     {/* Actions */}
@@ -272,12 +328,23 @@ export default function DashboardPage() {
                         title="Run instant HTTP health check"
                         className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors text-xs font-medium flex items-center space-x-1"
                       >
-                        <Play className={`w-3.5 h-3.5 ${testingId === m.id ? 'animate-spin text-emerald-400' : ''}`} />
+                        <Play
+                          className={`w-3.5 h-3.5 ${testingId === m.id ? "animate-spin text-emerald-400" : ""}`}
+                        />
                         <span className="hidden md:inline">Check</span>
                       </button>
 
                       <Link
+                        href={`/dashboard/monitors/${m.id}/edit`}
+                        title="Edit Monitor"
+                        className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors text-xs font-medium"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-emerald-400" />
+                      </Link>
+
+                      <Link
                         href={`/dashboard/monitors/${m.id}`}
+                        title="View Analytics & Logs"
                         className="p-2 rounded-lg bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-gray-300 border border-gray-700 transition-colors text-xs font-medium flex items-center space-x-1"
                       >
                         <ArrowUpRight className="w-4 h-4" />

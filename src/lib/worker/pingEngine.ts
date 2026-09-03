@@ -1,5 +1,5 @@
 import { query } from '../db';
-import { sendWebhookAlert } from '../alerts/notifier';
+import { sendWebhookAlert, sendEmailAlert, AlertPayload } from '../alerts/notifier';
 import axios from 'axios';
 
 export interface PingResult {
@@ -55,9 +55,11 @@ export async function executePingCheck(monitorId: string): Promise<PingResult> {
     const expected = monitor.expected_status || 200;
     if (statusCode === expected) {
       isSuccess = true;
+      console.log(`[PING] 🟢 "${monitor.name}" ➔ HTTP ${statusCode} (${responseTimeMs}ms) [OK]`);
     } else {
       isSuccess = false;
       errorMessage = `Expected HTTP ${expected}, received ${statusCode}`;
+      console.log(`[PING] 🔴 "${monitor.name}" ➔ HTTP ${statusCode} (${responseTimeMs}ms) [FAILED: ${errorMessage}]`);
     }
 
     // Insert PingLog
@@ -75,6 +77,8 @@ export async function executePingCheck(monitorId: string): Promise<PingResult> {
     const responseTimeMs = endTime - startTime;
     const errStr = err instanceof Error ? err.message : String(err);
     errorMessage = errStr.includes('timeout') ? `Timeout after ${monitor.timeout_ms}ms` : errStr;
+
+    console.log(`[PING] 🔴 "${monitor.name}" ➔ TIMEOUT/ERROR (${responseTimeMs}ms) [FAILED: ${errorMessage}]`);
 
     const pingLogId = 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     await query(
@@ -98,7 +102,7 @@ async function handleStateTransition(
 ) {
   if (isSuccess) {
     if (monitor.current_status === 'DOWN') {
-      console.log(`[STATUS RECOVERY] Monitor ${monitor.name} (${monitor.url}) has recovered!`);
+      console.log(`[STATE CHANGE] 🟢 Monitor "${monitor.name}" has RECOVERED! Disagreeing incidents resolved.`);
 
       await query(
         'UPDATE monitors SET current_status = $1, consecutive_failures = 0, updated_at = NOW() WHERE id = $2',
@@ -110,17 +114,25 @@ async function handleStateTransition(
         [monitor.id]
       );
 
+      const payload: AlertPayload = {
+        monitorId: monitor.id,
+        monitorName: monitor.name,
+        url: monitor.url,
+        event: 'RECOVERED',
+        statusCode,
+        responseTimeMs,
+        timestamp: new Date().toISOString(),
+      };
+
+      if (alertChannels.length === 0) {
+        console.log(`[ALERT] ℹ️ (No alert channels configured. Add Email/Webhook in /dashboard/alerts)`);
+      }
+
       for (const channel of alertChannels) {
-        if (channel.type === 'WEBHOOK') {
-          await sendWebhookAlert(channel.target, {
-            monitorId: monitor.id,
-            monitorName: monitor.name,
-            url: monitor.url,
-            event: 'RECOVERED',
-            statusCode,
-            responseTimeMs,
-            timestamp: new Date().toISOString(),
-          });
+        if (channel.type === 'EMAIL') {
+          await sendEmailAlert(channel.target, payload);
+        } else if (channel.type === 'WEBHOOK') {
+          await sendWebhookAlert(channel.target, payload);
         }
       }
     } else if (monitor.consecutive_failures > 0) {
@@ -131,7 +143,7 @@ async function handleStateTransition(
     const threshold = monitor.failure_threshold || 2;
 
     if (newFailCount >= threshold && monitor.current_status !== 'DOWN') {
-      console.log(`[STATUS ALERT] Monitor ${monitor.name} (${monitor.url}) is DOWN after ${newFailCount} failures!`);
+      console.log(`[STATE CHANGE] 🔴 Outage confirmed! Monitor "${monitor.name}" reached failure threshold (${newFailCount}/${threshold}).`);
 
       await query(
         'UPDATE monitors SET current_status = $1, consecutive_failures = $2, updated_at = NOW() WHERE id = $3',
@@ -151,21 +163,30 @@ async function handleStateTransition(
         );
       }
 
+      const payload: AlertPayload = {
+        monitorId: monitor.id,
+        monitorName: monitor.name,
+        url: monitor.url,
+        event: 'DOWN',
+        reason: errorMessage || 'HTTP failure / timeout',
+        statusCode,
+        responseTimeMs,
+        timestamp: new Date().toISOString(),
+      };
+
+      if (alertChannels.length === 0) {
+        console.log(`[ALERT] ℹ️ (No alert channels configured. Add Email/Webhook in /dashboard/alerts)`);
+      }
+
       for (const channel of alertChannels) {
-        if (channel.type === 'WEBHOOK') {
-          await sendWebhookAlert(channel.target, {
-            monitorId: monitor.id,
-            monitorName: monitor.name,
-            url: monitor.url,
-            event: 'DOWN',
-            reason: errorMessage || 'HTTP failure / timeout',
-            statusCode,
-            responseTimeMs,
-            timestamp: new Date().toISOString(),
-          });
+        if (channel.type === 'EMAIL') {
+          await sendEmailAlert(channel.target, payload);
+        } else if (channel.type === 'WEBHOOK') {
+          await sendWebhookAlert(channel.target, payload);
         }
       }
     } else {
+      console.log(`[FAILURE COUNTER] "${monitor.name}" failed check #${newFailCount} (Alert triggers at ${threshold} consecutive fails)`);
       await query('UPDATE monitors SET consecutive_failures = $1 WHERE id = $2', [newFailCount, monitor.id]);
     }
   }

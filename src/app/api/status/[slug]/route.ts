@@ -1,36 +1,50 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, initDb } from '@/lib/db';
+
+const DEMO_USER_ID = 'demo-user-1';
 
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
+    await initDb();
     const { slug } = await params;
-    const pageRes = await query('SELECT * FROM status_pages WHERE slug = $1 AND is_public = true', [slug]);
 
+    let pageRes = await query('SELECT * FROM status_pages WHERE slug = $1', [slug]);
+
+    // If status page doesn't exist yet, auto-create it
     if (pageRes.rows.length === 0) {
-      return NextResponse.json({ error: 'Status page not found or private' }, { status: 404 });
+      await query(
+        'INSERT INTO status_pages (id, user_id, title, slug, is_public, monitors, created_at, updated_at) VALUES ($1, $2, $3, $4, true, $5, NOW(), NOW())',
+        ['status_page_' + slug, DEMO_USER_ID, 'Platform System Status', slug, JSON.stringify([])]
+      );
+      pageRes = await query('SELECT * FROM status_pages WHERE slug = $1', [slug]);
     }
 
     const statusPage = pageRes.rows[0];
 
+    if (!statusPage.is_public) {
+      return NextResponse.json({ error: 'This status page is private.' }, { status: 403 });
+    }
+
     let monitorIds: string[] = [];
     try {
-      monitorIds = JSON.parse(statusPage.monitors);
+      monitorIds = JSON.parse(statusPage.monitors || '[]');
     } catch {
-      // empty
+      monitorIds = [];
     }
 
-    if (monitorIds.length === 0) {
-      return NextResponse.json({
-        title: statusPage.title,
-        isAllOperational: true,
-        monitors: [],
-      });
+    let monitorsRes;
+    if (monitorIds.length > 0) {
+      monitorsRes = await query(
+        'SELECT * FROM monitors WHERE id = ANY($1::text[]) AND is_active = true ORDER BY created_at ASC',
+        [monitorIds]
+      );
+    } else {
+      // Default: Display all active monitors if none explicitly filtered
+      monitorsRes = await query(
+        'SELECT * FROM monitors WHERE user_id = $1 AND is_active = true ORDER BY created_at ASC',
+        [statusPage.user_id || DEMO_USER_ID]
+      );
     }
-
-    const monitorsRes = await query(
-      'SELECT * FROM monitors WHERE id = ANY($1::text[]) AND is_active = true',
-      [monitorIds]
-    );
 
     const enriched = await Promise.all(
       monitorsRes.rows.map(async (m) => {
@@ -61,10 +75,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       })
     );
 
-    const isAllOperational = enriched.every((m) => m.currentStatus === 'UP');
+    const isAllOperational = enriched.length === 0 || enriched.every((m) => m.currentStatus === 'UP');
 
     return NextResponse.json({
-      title: statusPage.title,
+      title: statusPage.title || 'Platform System Status',
       isAllOperational,
       monitors: enriched,
     });

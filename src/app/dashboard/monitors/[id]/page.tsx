@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ShieldCheck,
   RefreshCw,
+  Pencil,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -194,6 +195,15 @@ export default function MonitorDetailPage({
             />
             <span>{testing ? "Testing..." : "Run Instant Check"}</span>
           </button>
+
+          <Link
+            href={`/dashboard/monitors/${id}/edit`}
+            className="px-3.5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 font-medium text-sm transition-colors flex items-center space-x-1.5"
+            title="Edit Monitor Settings"
+          >
+            <Pencil className="w-4 h-4 text-emerald-400" />
+            <span>Edit</span>
+          </Link>
 
           <button
             onClick={handleDelete}

@@ -50,6 +50,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         method: monitor.method,
         intervalSec: monitor.interval_sec,
         expectedStatus: monitor.expected_status,
+        timeoutMs: monitor.timeout_ms,
+        headers: monitor.headers,
+        body: monitor.body,
+        failureThreshold: monitor.failure_threshold || 2,
         currentStatus: monitor.current_status,
         isActive: monitor.is_active,
         pingLogs: logs.map((l) => ({
@@ -92,8 +96,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     await query(
       `UPDATE monitors 
-      SET name = $1, url = $2, method = $3, interval_sec = $4, expected_status = $5, timeout_ms = $6, headers = $7, body = $8, is_active = $9, updated_at = NOW() 
-      WHERE id = $10`,
+      SET name = $1, url = $2, method = $3, interval_sec = $4, expected_status = $5, timeout_ms = $6, headers = $7, body = $8, failure_threshold = $9, is_active = $10, updated_at = NOW() 
+      WHERE id = $11`,
       [
         body.name,
         body.url,
@@ -103,7 +107,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         body.timeoutMs,
         body.headers,
         body.body,
-        body.isActive,
+        body.failureThreshold || 2,
+        body.isActive ?? true,
         id,
       ]
     );
