@@ -9,6 +9,7 @@ import {
   AssertionRule,
   AssertionContext,
 } from "./assertions";
+import { checkSslCertificate } from "./sslChecker";
 import axios from "axios";
 
 export interface PingResult {
@@ -177,6 +178,33 @@ export async function executePingCheck(monitorId: string): Promise<PingResult> {
       responseTimeMs,
       errorMessage,
     );
+
+    // Perform SSL Certificate check if HTTPS
+    if (monitor.url.startsWith("https://")) {
+      try {
+        const sslInfo = await checkSslCertificate(monitor.url);
+        await query(
+          `UPDATE monitors 
+           SET ssl_valid = $1, ssl_days_remaining = $2, ssl_issuer = $3, ssl_valid_to = $4, ssl_checked_at = NOW(), ssl_error = $5 
+           WHERE id = $6`,
+          [
+            sslInfo.valid,
+            sslInfo.daysRemaining,
+            sslInfo.issuer,
+            sslInfo.validTo,
+            sslInfo.error,
+            monitor.id,
+          ],
+        );
+      } catch (sslErr: unknown) {
+        const sslErrStr =
+          sslErr instanceof Error ? sslErr.message : String(sslErr);
+        console.warn(
+          `[SSL WARN] Failed to probe SSL for ${monitor.url}:`,
+          sslErrStr,
+        );
+      }
+    }
 
     return { statusCode, responseTimeMs, isSuccess, errorMessage };
   } catch (err: unknown) {

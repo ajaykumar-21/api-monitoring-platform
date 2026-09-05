@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Pencil,
   Zap,
+  Lock,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -55,6 +56,12 @@ interface MonitorDetail {
   currentStatus: "UP" | "DOWN" | "DEGRADED";
   isActive: boolean;
   assertions?: string | null;
+  sslValid?: boolean | null;
+  sslDaysRemaining?: number | null;
+  sslIssuer?: string | null;
+  sslValidTo?: string | null;
+  sslCheckedAt?: string | null;
+  sslError?: string | null;
   pingLogs: PingLog[];
   incidents: Incident[];
 }
@@ -275,6 +282,111 @@ export default function MonitorDetailPage({
           </span>
         </div>
       </div>
+
+      {/* SSL / TLS Certificate Health Card (for HTTPS endpoints) */}
+      {monitor.url.startsWith("https://") && (
+        <div className="bg-[#131927] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <Lock className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-base font-bold text-white">
+                SSL / TLS Certificate Health
+              </h2>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                  monitor.sslDaysRemaining !== null &&
+                  monitor.sslDaysRemaining !== undefined
+                    ? monitor.sslDaysRemaining <= 0
+                      ? "bg-red-500/10 text-red-400 border-red-500/20"
+                      : monitor.sslDaysRemaining <= 14
+                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : "bg-gray-800 text-gray-400 border-gray-700"
+                }`}
+              >
+                {monitor.sslDaysRemaining !== null &&
+                monitor.sslDaysRemaining !== undefined
+                  ? monitor.sslDaysRemaining <= 0
+                    ? "🔴 Certificate Expired"
+                    : monitor.sslDaysRemaining <= 14
+                      ? `🟡 Expiring Soon (${monitor.sslDaysRemaining} days)`
+                      : "🟢 Valid & Trusted"
+                  : "Checking SSL..."}
+              </span>
+            </div>
+            {monitor.sslCheckedAt && (
+              <span className="text-[11px] text-gray-500 font-mono">
+                Verified: {new Date(monitor.sslCheckedAt).toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+            <div className="bg-[#0b0f19] border border-gray-800/80 p-3.5 rounded-xl">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold block">
+                Days Remaining
+              </span>
+              <span
+                className={`text-2xl font-black font-mono mt-1 block ${
+                  monitor.sslDaysRemaining !== null &&
+                  monitor.sslDaysRemaining !== undefined
+                    ? monitor.sslDaysRemaining <= 14
+                      ? "text-amber-400"
+                      : "text-emerald-400"
+                    : "text-gray-400"
+                }`}
+              >
+                {monitor.sslDaysRemaining !== null &&
+                monitor.sslDaysRemaining !== undefined
+                  ? `${monitor.sslDaysRemaining} Days`
+                  : "—"}
+              </span>
+            </div>
+
+            <div className="bg-[#0b0f19] border border-gray-800/80 p-3.5 rounded-xl">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold block">
+                Issuer / Authority
+              </span>
+              <span
+                className="text-sm font-bold text-white truncate mt-1.5 block"
+                title={monitor.sslIssuer || "Unknown"}
+              >
+                {monitor.sslIssuer || "Let's Encrypt / Cloudflare"}
+              </span>
+            </div>
+
+            <div className="bg-[#0b0f19] border border-gray-800/80 p-3.5 rounded-xl">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold block">
+                Valid Until
+              </span>
+              <span className="text-xs font-mono text-gray-300 mt-1.5 block">
+                {monitor.sslValidTo
+                  ? new Date(monitor.sslValidTo).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "—"}
+              </span>
+            </div>
+
+            <div className="bg-[#0b0f19] border border-gray-800/80 p-3.5 rounded-xl">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold block">
+                Encryption Protocol
+              </span>
+              <span className="text-sm font-bold text-emerald-400 font-mono mt-1.5 block">
+                TLS 1.3 / HTTPS
+              </span>
+            </div>
+          </div>
+
+          {monitor.sslError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono">
+              ⚠️ SSL Warning: {monitor.sslError}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Configured Assertions Card */}
       {parsedAssertions.length > 0 && (

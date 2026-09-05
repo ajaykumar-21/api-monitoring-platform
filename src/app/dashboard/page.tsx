@@ -13,6 +13,8 @@ import {
   ArrowUpRight,
   ExternalLink,
   Pencil,
+  Lock,
+  ShieldCheck,
 } from "lucide-react";
 
 interface Monitor {
@@ -24,6 +26,9 @@ interface Monitor {
   expectedStatus: number;
   currentStatus: "UP" | "DOWN" | "DEGRADED";
   isActive: boolean;
+  sslValid?: boolean | null;
+  sslDaysRemaining?: number | null;
+  sslIssuer?: string | null;
   uptimePercentage: number;
   avgResponseTimeMs: number;
   latestResponseTimeMs: number | null;
@@ -285,6 +290,34 @@ export default function DashboardPage() {
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 text-gray-300 border border-gray-700">
                           {m.method}
                         </span>
+
+                        {m.url.startsWith("https://") && (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                              m.sslDaysRemaining !== null &&
+                              m.sslDaysRemaining !== undefined
+                                ? m.sslDaysRemaining <= 0
+                                  ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                  : m.sslDaysRemaining <= 14
+                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                    : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-gray-800 text-gray-400 border-gray-700"
+                            }`}
+                            title={
+                              m.sslIssuer
+                                ? `SSL Issuer: ${m.sslIssuer}`
+                                : "SSL Secured"
+                            }
+                          >
+                            <Lock className="w-2.5 h-2.5" />
+                            {m.sslDaysRemaining !== null &&
+                            m.sslDaysRemaining !== undefined
+                              ? m.sslDaysRemaining <= 0
+                                ? "SSL Expired"
+                                : `${m.sslDaysRemaining}d SSL`
+                              : "HTTPS"}
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-400 font-mono truncate mt-0.5 max-w-lg">
                         {m.url}

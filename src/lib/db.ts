@@ -94,6 +94,12 @@ export async function initDb() {
       current_status VARCHAR(50) DEFAULT 'UP',
       consecutive_failures INT DEFAULT 0,
       failure_threshold INT DEFAULT 2,
+      ssl_valid BOOLEAN,
+      ssl_days_remaining INT,
+      ssl_issuer TEXT,
+      ssl_valid_to TIMESTAMP WITH TIME ZONE,
+      ssl_checked_at TIMESTAMP WITH TIME ZONE,
+      ssl_error TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
@@ -143,5 +149,21 @@ export async function initDb() {
   `;
 
   await query(createTablesSQL);
+
+  // Non-destructive migrations for existing databases
+  const migrationSQL = `
+    ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_valid BOOLEAN;
+    ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_days_remaining INT;
+    ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_issuer TEXT;
+    ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_valid_to TIMESTAMP WITH TIME ZONE;
+    ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_checked_at TIMESTAMP WITH TIME ZONE;
+    ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_error TEXT;
+  `;
+  try {
+    await query(migrationSQL);
+  } catch {
+    // Migration columns might already exist
+  }
+
   console.log("✅ PostgreSQL database tables and indexes initialized!");
 }
