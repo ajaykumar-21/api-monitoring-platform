@@ -6,6 +6,14 @@ export const metadata = {
   title: "API Sentinel | Uptime & Performance Monitoring",
   description:
     "Real-time API uptime monitoring, latency tracking, incident management, and status pages.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -19,7 +27,10 @@ export default function RootLayout({
         <header className="border-b border-gray-800 bg-[#111625]/80 backdrop-blur sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-3 group">
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-3 group"
+              >
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
                   <Activity className="w-6 h-6 text-slate-950 stroke-[2.5]" />
                 </div>
@@ -89,9 +100,9 @@ export default function RootLayout({
                 API Sentinel Monitor Platform — SaaS Portfolio Project
               </span>
             </div>
-            {/* <div>
+            <div>
               Powered by Next.js 15, Node.js, PostgreSQL (pg), BullMQ & Redis
-            </div> */}
+            </div>
           </div>
         </footer>
       </body>
