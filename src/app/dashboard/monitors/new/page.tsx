@@ -11,11 +11,14 @@ import {
   Settings,
   AlertCircle,
 } from "lucide-react";
+import AssertionBuilder from "@/components/AssertionBuilder";
+import { AssertionRule } from "@/lib/worker/assertions";
 
 export default function NewMonitorPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [assertions, setAssertions] = useState<AssertionRule[]>([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -35,10 +38,16 @@ export default function NewMonitorPage() {
     setError(null);
 
     try {
+      const payload = {
+        ...form,
+        assertions:
+          assertions.length > 0 ? JSON.stringify(assertions) : undefined,
+      };
+
       const res = await fetch("/api/monitors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -232,6 +241,11 @@ export default function NewMonitorPage() {
             </div>
           )}
         </div>
+
+        <hr className="border-gray-800" />
+
+        {/* Dynamic Response Assertions Builder */}
+        <AssertionBuilder assertions={assertions} onChange={setAssertions} />
 
         <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-800">
           <Link

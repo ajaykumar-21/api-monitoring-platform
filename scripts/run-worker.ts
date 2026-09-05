@@ -1,3 +1,6 @@
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
+
 import { initializeWorkerEngine } from "../src/lib/worker/scheduler";
 
 async function main() {

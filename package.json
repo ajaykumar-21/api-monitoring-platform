@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "worker": "tsx scripts/run-worker.ts",
+    "worker": "tsx watch scripts/run-worker.ts",
     "db:init": "tsx scripts/init-db.ts",
     "type-check": "tsc --noEmit"
   },

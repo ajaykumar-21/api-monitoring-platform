@@ -12,6 +12,8 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
+import AssertionBuilder from "@/components/AssertionBuilder";
+import { AssertionRule } from "@/lib/worker/assertions";
 
 export default function EditMonitorPage({
   params,
@@ -23,6 +25,7 @@ export default function EditMonitorPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [assertions, setAssertions] = useState<AssertionRule[]>([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -56,6 +59,15 @@ export default function EditMonitorPage({
           failureThreshold: m.failureThreshold || 2,
           isActive: m.isActive ?? true,
         });
+
+        if (m.assertions) {
+          try {
+            const parsed = JSON.parse(m.assertions);
+            if (Array.isArray(parsed)) setAssertions(parsed);
+          } catch {
+            setAssertions([]);
+          }
+        }
       } catch (err: unknown) {
         const errStr = err instanceof Error ? err.message : String(err);
         setError(errStr);
@@ -72,10 +84,15 @@ export default function EditMonitorPage({
     setError(null);
 
     try {
+      const payload = {
+        ...form,
+        assertions: assertions.length > 0 ? JSON.stringify(assertions) : null,
+      };
+
       const res = await fetch(`/api/monitors/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -317,6 +334,11 @@ export default function EditMonitorPage({
             </div>
           )}
         </div>
+
+        <hr className="border-gray-800" />
+
+        {/* Dynamic Response Assertions Builder */}
+        <AssertionBuilder assertions={assertions} onChange={setAssertions} />
 
         <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-800">
           <Link

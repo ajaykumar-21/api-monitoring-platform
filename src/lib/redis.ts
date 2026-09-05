@@ -1,4 +1,7 @@
 import Redis from "ioredis";
+import { loadEnvConfig } from "@next/env";
+
+loadEnvConfig(process.cwd());
 
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
 

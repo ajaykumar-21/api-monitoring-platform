@@ -1,42 +1,56 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { NextResponse } from "next/server";
+import { query } from "@/lib/db";
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
-    const monitorRes = await query('SELECT * FROM monitors WHERE id = $1', [id]);
+    const monitorRes = await query("SELECT * FROM monitors WHERE id = $1", [
+      id,
+    ]);
 
     if (monitorRes.rows.length === 0) {
-      return NextResponse.json({ error: 'Monitor not found' }, { status: 404 });
+      return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
     }
 
     const monitor = monitorRes.rows[0];
 
     const logsRes = await query(
-      'SELECT * FROM ping_logs WHERE monitor_id = $1 ORDER BY tested_at DESC LIMIT 100',
-      [id]
+      "SELECT * FROM ping_logs WHERE monitor_id = $1 ORDER BY tested_at DESC LIMIT 100",
+      [id],
     );
 
     const incidentsRes = await query(
-      'SELECT * FROM incidents WHERE monitor_id = $1 ORDER BY started_at DESC LIMIT 20',
-      [id]
+      "SELECT * FROM incidents WHERE monitor_id = $1 ORDER BY started_at DESC LIMIT 20",
+      [id],
     );
 
     const logs = logsRes.rows;
     const totalPings = logs.length;
     const successfulPings = logs.filter((l) => l.is_success).length;
-    const uptimePercentage = totalPings > 0 ? (successfulPings / totalPings) * 100 : 100;
+    const uptimePercentage =
+      totalPings > 0 ? (successfulPings / totalPings) * 100 : 100;
 
     const responseTimes = logs.map((l) => l.response_time);
     const avgLatency =
       responseTimes.length > 0
-        ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
+        ? Math.round(
+            responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length,
+          )
         : 0;
-    const maxLatency = responseTimes.length > 0 ? Math.max(...responseTimes) : 0;
-    const minLatency = responseTimes.length > 0 ? Math.min(...responseTimes) : 0;
+    const maxLatency =
+      responseTimes.length > 0 ? Math.max(...responseTimes) : 0;
+    const minLatency =
+      responseTimes.length > 0 ? Math.min(...responseTimes) : 0;
 
     const chartData = [...logs].reverse().map((log) => ({
-      time: new Date(log.tested_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      time: new Date(log.tested_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
       responseTime: log.response_time,
       isSuccess: log.is_success ? 1 : 0,
       statusCode: log.status_code || 0,
@@ -53,6 +67,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         timeoutMs: monitor.timeout_ms,
         headers: monitor.headers,
         body: monitor.body,
+        assertions: monitor.assertions,
         failureThreshold: monitor.failure_threshold || 2,
         currentStatus: monitor.current_status,
         isActive: monitor.is_active,
@@ -89,15 +104,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
     const body = await req.json();
 
     await query(
       `UPDATE monitors 
-      SET name = $1, url = $2, method = $3, interval_sec = $4, expected_status = $5, timeout_ms = $6, headers = $7, body = $8, failure_threshold = $9, is_active = $10, updated_at = NOW() 
-      WHERE id = $11`,
+      SET name = $1, url = $2, method = $3, interval_sec = $4, expected_status = $5, timeout_ms = $6, headers = $7, body = $8, assertions = $9, failure_threshold = $10, is_active = $11, updated_at = NOW() 
+      WHERE id = $12`,
       [
         body.name,
         body.url,
@@ -107,13 +125,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         body.timeoutMs,
         body.headers,
         body.body,
+        body.assertions || null,
         body.failureThreshold || 2,
         body.isActive ?? true,
         id,
-      ]
+      ],
     );
 
-    const updated = (await query('SELECT * FROM monitors WHERE id = $1', [id])).rows[0];
+    const updated = (await query("SELECT * FROM monitors WHERE id = $1", [id]))
+      .rows[0];
     return NextResponse.json({ monitor: updated });
   } catch (error: unknown) {
     const errStr = error instanceof Error ? error.message : String(error);
@@ -121,10 +141,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
-    await query('DELETE FROM monitors WHERE id = $1', [id]);
+    await query("DELETE FROM monitors WHERE id = $1", [id]);
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     const errStr = error instanceof Error ? error.message : String(error);

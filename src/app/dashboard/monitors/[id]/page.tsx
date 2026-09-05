@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   RefreshCw,
   Pencil,
+  Zap,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -25,6 +26,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { AssertionRule } from "@/lib/worker/assertions";
 
 interface PingLog {
   id: string;
@@ -52,6 +54,7 @@ interface MonitorDetail {
   expectedStatus: number;
   currentStatus: "UP" | "DOWN" | "DEGRADED";
   isActive: boolean;
+  assertions?: string | null;
   pingLogs: PingLog[];
   incidents: Incident[];
 }
@@ -141,6 +144,16 @@ export default function MonitorDetailPage({
 
   const { monitor, stats, chartData } = data;
   const isUp = monitor.currentStatus === "UP";
+
+  let parsedAssertions: AssertionRule[] = [];
+  if (monitor.assertions) {
+    try {
+      parsedAssertions = JSON.parse(monitor.assertions);
+      if (!Array.isArray(parsedAssertions)) parsedAssertions = [];
+    } catch {
+      parsedAssertions = [];
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -263,6 +276,61 @@ export default function MonitorDetailPage({
         </div>
       </div>
 
+      {/* Configured Assertions Card */}
+      {parsedAssertions.length > 0 && (
+        <div className="bg-[#131927] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-base font-bold text-white">
+                Configured Response Assertions
+              </h2>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                {parsedAssertions.length} Rule
+                {parsedAssertions.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <Link
+              href={`/dashboard/monitors/${id}/edit`}
+              className="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+            >
+              Modify Rules &rarr;
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {parsedAssertions.map((rule, idx) => (
+              <div
+                key={rule.id || idx}
+                className="bg-[#0b0f19] border border-gray-800/80 rounded-xl p-3 space-y-1.5 text-xs"
+              >
+                <div className="flex items-center justify-between text-gray-400 font-semibold text-[10px] uppercase">
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    <Zap className="w-3 h-3" /> Rule #{idx + 1}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-mono">
+                    {rule.target}
+                  </span>
+                </div>
+                <div className="font-mono text-gray-200 truncate">
+                  {rule.property ? (
+                    <span className="text-indigo-300 font-bold">
+                      {rule.property}{" "}
+                    </span>
+                  ) : null}
+                  <span className="text-amber-400">{rule.operator} </span>
+                  {rule.value !== undefined ? (
+                    <span className="text-emerald-400 font-bold">
+                      &quot;{rule.value}&quot;
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Latency Chart */}
       <div className="bg-[#131927] border border-gray-800 rounded-2xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
@@ -357,7 +425,7 @@ export default function MonitorDetailPage({
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">HTTP Code</th>
                 <th className="px-6 py-3">Response Time</th>
-                <th className="px-6 py-3">Details / Error</th>
+                <th className="px-6 py-3">Details / Validation</th>
                 <th className="px-6 py-3 text-right">Timestamp</th>
               </tr>
             </thead>
@@ -394,11 +462,22 @@ export default function MonitorDetailPage({
                   <td className="px-6 py-3 font-mono text-gray-200 font-bold">
                     {log.responseTime}ms
                   </td>
-                  <td className="px-6 py-3 max-w-xs truncate text-gray-400">
+                  <td className="px-6 py-3 max-w-md truncate text-gray-400">
                     {log.errorMessage ? (
-                      <span className="text-red-400">{log.errorMessage}</span>
+                      <span
+                        className={`${
+                          log.errorMessage.includes("Assertion")
+                            ? "text-amber-400 font-mono text-[11px]"
+                            : "text-red-400"
+                        }`}
+                        title={log.errorMessage}
+                      >
+                        {log.errorMessage}
+                      </span>
                     ) : (
-                      "OK"
+                      <span className="text-emerald-400/80">
+                        All Assertions & Status Passed OK
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-3 text-right font-mono text-gray-500">
