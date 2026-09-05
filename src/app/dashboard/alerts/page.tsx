@@ -11,8 +11,6 @@ import {
   Trash2,
   CheckCircle2,
   RefreshCw,
-  Sparkles,
-  Info,
 } from "lucide-react";
 
 interface AlertChannel {
@@ -95,31 +93,6 @@ export default function AlertsSettingsPage() {
         </div>
       </div>
 
-      {/* Feature Notice Banner */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-blue-500/10 border border-amber-500/30 rounded-2xl p-5 shadow-lg relative overflow-hidden">
-        <div className="flex items-start gap-4">
-          <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 mt-0.5">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-white">
-                Email Delivery — Upcoming Feature (In Development)
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Coming Soon
-              </span>
-            </div>
-            <p className="text-xs text-gray-300 leading-relaxed">
-              Automated email delivery via SMTP / transactional providers is
-              currently being integrated. You can still register your email
-              addresses and Discord/Slack Webhooks now so they are active as
-              soon as email delivery goes live!
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Add Alert Channel Card */}
       <div className="bg-[#131927] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
@@ -139,21 +112,14 @@ export default function AlertsSettingsPage() {
               onChange={(e) => setType(e.target.value as "EMAIL" | "WEBHOOK")}
               className="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
             >
-              <option value="EMAIL">📧 Email Address (Upcoming)</option>
+              <option value="EMAIL">📧 Email Address</option>
               <option value="WEBHOOK">🔗 Discord / Slack Webhook</option>
             </select>
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center justify-between">
-              <span>
-                {type === "EMAIL" ? "Destination Email Address" : "Webhook URL"}
-              </span>
-              {type === "EMAIL" && (
-                <span className="text-[10px] text-amber-400 font-medium">
-                  Coming soon
-                </span>
-              )}
+            <label className="block text-xs font-medium text-gray-300 mb-1">
+              {type === "EMAIL" ? "Destination Email Address" : "Webhook URL"}
             </label>
             <input
               type={type === "EMAIL" ? "email" : "url"}
@@ -229,22 +195,13 @@ export default function AlertsSettingsPage() {
                       <span className="text-sm font-bold text-white font-mono">
                         {ch.target}
                       </span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                          ch.type === "EMAIL"
-                            ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
-                            : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        }`}
-                      >
-                        {ch.type === "EMAIL" ? "EMAIL (UPCOMING)" : ch.type}
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        {ch.type}
                       </span>
                     </div>
                     <span className="text-[10px] text-gray-500 block mt-0.5">
                       Added on {new Date(ch.created_at).toLocaleDateString()}{" "}
-                      &bull; Status:{" "}
-                      {ch.type === "EMAIL"
-                        ? "Pending Provider Activation"
-                        : "Active"}
+                      &bull; Status: Active
                     </span>
                   </div>
                 </div>

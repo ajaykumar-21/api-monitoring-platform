@@ -6,14 +6,6 @@ export const metadata = {
   title: "API Sentinel | Uptime & Performance Monitoring",
   description:
     "Real-time API uptime monitoring, latency tracking, incident management, and status pages.",
-  icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
 };
 
 export default function RootLayout({
