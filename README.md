@@ -1,5 +1,10 @@
 # 🛡️ API Sentinel — API Monitoring & Uptime SaaS Platform
 
+[![CI Pipeline](https://github.com/ajaykumar-21/api-monitoring-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/ajaykumar-21/api-monitoring-platform/actions/workflows/ci.yml)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue?logo=postgresql)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
+
 > **A full-stack, production-grade API Monitoring & Uptime SaaS platform (Mini UptimeRobot + Postman).**  
 > Automatically monitors APIs, measures response latency, tracks incidents, sends multi-channel alerts (Email & Webhooks), and publishes live public status pages.
 
@@ -159,6 +164,32 @@ npm run build
 
 # Start Production Server
 npm run start
+```
+
+---
+
+## 🔄 8. CI/CD Pipeline Architecture
+
+This project includes an automated **GitHub Actions CI/CD Pipeline** (`.github/workflows/ci.yml`):
+
+```
+ ┌────────────────────────────────────────────────────────┐
+ │           Developer pushes code (git push)             │
+ └─────────────────────────┬──────────────────────────────┘
+                           │ (Triggers GitHub Actions)
+ ┌─────────────────────────▼──────────────────────────────┐
+ │             Continuous Integration (CI)                │
+ │  1. Checkout code & Setup Node.js 20 environment       │
+ │  2. Install dependencies with `npm ci`                 │
+ │  3. Run TypeScript static type check (`npx tsc`)       │
+ │  4. Verify production build compilation (`npm build`)  │
+ └─────────────────────────┬──────────────────────────────┘
+                           │ (If all checks pass 🟢)
+ ┌─────────────────────────▼──────────────────────────────┐
+ │             Continuous Deployment (CD)                 │
+ │  • Automatically deploys live build to Vercel          │
+ │  • Automated 1-minute health cron worker (cron-job.org)│
+ └────────────────────────────────────────────────────────┘
 ```
 
 ---
