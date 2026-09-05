@@ -117,10 +117,20 @@ export async function initDb() {
     CREATE TABLE IF NOT EXISTS incidents (
       id VARCHAR(255) PRIMARY KEY,
       monitor_id VARCHAR(255) NOT NULL REFERENCES monitors(id) ON DELETE CASCADE,
+      title VARCHAR(255),
+      severity VARCHAR(50) DEFAULT 'MAJOR',
       status VARCHAR(50) DEFAULT 'OPEN',
       started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       resolved_at TIMESTAMP WITH TIME ZONE,
       cause TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS incident_updates (
+      id VARCHAR(255) PRIMARY KEY,
+      incident_id VARCHAR(255) NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+      status VARCHAR(50) NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS alert_channels (
@@ -146,6 +156,7 @@ export async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_monitors_user_id ON monitors(user_id);
     CREATE INDEX IF NOT EXISTS idx_ping_logs_monitor_id ON ping_logs(monitor_id, tested_at DESC);
     CREATE INDEX IF NOT EXISTS idx_incidents_monitor_id ON incidents(monitor_id);
+    CREATE INDEX IF NOT EXISTS idx_incident_updates_incident_id ON incident_updates(incident_id, created_at ASC);
   `;
 
   await query(createTablesSQL);
@@ -158,6 +169,15 @@ export async function initDb() {
     ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_valid_to TIMESTAMP WITH TIME ZONE;
     ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_checked_at TIMESTAMP WITH TIME ZONE;
     ALTER TABLE monitors ADD COLUMN IF NOT EXISTS ssl_error TEXT;
+    ALTER TABLE incidents ADD COLUMN IF NOT EXISTS title VARCHAR(255);
+    ALTER TABLE incidents ADD COLUMN IF NOT EXISTS severity VARCHAR(50) DEFAULT 'MAJOR';
+    CREATE TABLE IF NOT EXISTS incident_updates (
+      id VARCHAR(255) PRIMARY KEY,
+      incident_id VARCHAR(255) NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+      status VARCHAR(50) NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
   `;
   try {
     await query(migrationSQL);

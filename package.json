@@ -8,7 +8,10 @@
     "start": "next start",
     "worker": "tsx watch scripts/run-worker.ts",
     "db:init": "tsx scripts/init-db.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:assertions": "tsx scripts/test-assertions.ts",
+    "test:ssl": "tsx scripts/test-ssl.ts",
+    "test:incidents": "tsx scripts/test-incidents.ts"
   },
   "dependencies": {
     "axios": "^1.8.1",

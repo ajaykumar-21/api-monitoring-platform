@@ -1,6 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
-import { Activity, Plus, ShieldCheck, Bell, Radio } from "lucide-react";
+import { Activity, Plus, ShieldCheck, Bell, Radio, Flame } from "lucide-react";
 
 export const metadata = {
   title: "API Sentinel | Uptime & Performance Monitoring",
@@ -39,6 +39,13 @@ export default function RootLayout({
                   className="px-3 py-2 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors"
                 >
                   Dashboard
+                </Link>
+                <Link
+                  href="/dashboard/incidents"
+                  className="px-3 py-2 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors flex items-center space-x-1.5"
+                >
+                  <Flame className="w-4 h-4 text-amber-400" />
+                  <span>Incidents</span>
                 </Link>
                 <Link
                   href="/dashboard/alerts"

@@ -5,91 +5,106 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue?logo=postgresql)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
 
-> **A full-stack, production-grade API Monitoring & Uptime SaaS platform (Mini UptimeRobot + Postman).**  
-> Automatically monitors APIs, measures response latency, tracks incidents, sends multi-channel alerts (Email & Webhooks), and publishes live public status pages.
+> **A full-stack, production-grade API Monitoring & Uptime SaaS platform (Mini UptimeRobot + Postman + Statuspage).**  
+> Automatically monitors APIs, measures response latency, validates JSON payloads & SSL certificates, manages incident lifecycles with live public timeline steppers, sends multi-channel alerts (Email & Webhooks), and publishes public status pages.
 
 ---
 
 ## 📖 1. Project Description (In Simple Words)
 
-When companies build software, their backend APIs and microservices can crash, slow down, or return errors without notice.
+When companies build software, their backend APIs, microservices, and SSL certificates can fail, expire, or return corrupted payloads without warning.
 
-**API Sentinel** is a tool that acts as your 24/7 automated watcher:
+**API Sentinel** is your 24/7 automated observability platform:
 
-1. You give it an API URL (e.g. `https://api.example.com/users`), expected HTTP status (e.g. `200`), and check interval (e.g. `Every 1 minute`).
-2. The system periodically pings your API in the background and measures response time in milliseconds (ms).
-3. If the API fails consecutively or takes too long to respond, it marks the service as **`DOWN 🔴`**, logs an incident, and immediately sends an **Email & Webhook alert**!
-4. When the API recovers, it marks it back as **`UP 🟢`** and sends a recovery notification.
-5. It also provides a **Public Status Page** (like `status.github.com`) that anyone can view to check system health.
+1. **Configurable Endpoints**: Provide any HTTP/HTTPS URL, expected status code, custom headers, request payloads, assertions, and check intervals (1m, 5m, 15m).
+2. **Deep Health Inspection**: Automatically measures response latency (ms), tests TLS/SSL certificate expiration days & CA issuers, and evaluates multi-field JSON assertions (`data.user.id`, regex, status).
+3. **Smart Outage Detection & Multi-Channel Alerts**: Requires consecutive failures to eliminate false positives. When down, logs an incident and sends instant **Email (SMTP)** & **Webhook (Slack/Discord)** alerts.
+4. **Live Incident Updates & Public Status Pages**: Provides a public status portal with 90-day uptime bars, a 4-stage live incident timeline stepper (`INVESTIGATING` → `IDENTIFIED` → `MONITORING` → `RESOLVED`), and historical incident archives.
+5. **Dashboard Incident Hub**: Manage active incidents, manually declare outages, and post timestamped progress updates directly to subscribers and status page viewers.
 
 ---
 
 ## ✨ 2. Key Features
 
-- **⏱️ Automated Periodic Pings**: Checks API health on customizable intervals (1 minute, 5 minutes, 15 minutes).
-- **📈 Real-Time Latency Charts**: Interactive visual charts showing response time trends over time using **Recharts**.
-- **🎯 Postman-Style Request Options**: Custom HTTP methods (`GET`, `POST`, `PUT`, `DELETE`), custom headers, JSON body, timeout limits, and expected status codes.
-- **🛡️ Smart Failure Thresholds**: Prevents false alarms by requiring consecutive failures (e.g. 2 failed checks) before triggering a downtime alert.
-- **📬 Multi-Channel Alerting**: Instant notifications via **Email (SMTP/Nodemailer)** and **Webhooks (Discord / Slack)**.
+- **⏱️ Automated Periodic Pings**: High-precision HTTP/HTTPS health checks on customizable intervals (1m, 5m, 15m).
+- **⚡ Advanced JSON & Response Assertions Engine**:
+  - Assert on HTTP status codes, latency thresholds, response headers, or response bodies.
+  - JSONPath / dot-notation evaluation (e.g. `data.status`, `items[0].id`).
+  - Supports 10 condition operators: `EQUALS`, `NOT_EQUALS`, `GREATER_THAN`, `LESS_THAN`, `CONTAINS`, `NOT_CONTAINS`, `EXISTS`, `NOT_EXISTS`, `IS_NULL`, `MATCHES_REGEX`.
+- **🔒 SSL / TLS Certificate Expiry Monitoring**:
+  - Live SNI TLS handshake probing.
+  - Days-remaining countdown with color-coded warning badges (`SSL: 85d`, `SSL: Expiring in 5d`, `SSL Expired`).
+  - Automatic Certificate Authority / Issuer identification (`Let's Encrypt`, `Google Trust Services`, `DigiCert`, `Cloudflare`, etc.).
+  - Protocol version badge (`TLS 1.3`) & dedicated Certificate Health card.
+- **📢 Live Incident Management & Public Timeline**:
+  - 4-stage visual timeline stepper (`Investigating` → `Identified` → `Monitoring` → `Resolved`).
+  - Real-time timestamped progress notes stream on public status pages.
+  - 7-day past incidents archive.
+  - **Admin Incident Hub** (`/dashboard/incidents`) to declare outages and post status updates.
+- **📈 Real-Time Latency Charts**: Interactive visual latency trends and response time distribution using **Recharts**.
+- **🛡️ Smart Failure Thresholds**: Prevents false alarms by requiring consecutive failed pings before declaring an outage.
+- **📬 Multi-Channel Alerting**: Instant notifications via **Email (SMTP / Nodemailer)** and **Webhooks (Discord / Slack)**.
 - **🌐 Public Status Pages**: External-facing status board with 90-day visual health history bars.
-- **✏️ Full Edit & Management Controls**: Edit endpoint settings, adjust timeouts, pause/resume monitoring, or delete monitors anytime.
+- **✏️ Full Management Controls**: Create, edit, pause, resume, or delete monitors anytime with instant configuration reload.
 
 ---
 
-## 🛠️ 3. Tech Stack & Why We Used Each Tool
+## 🛠️ 3. Tech Stack & Architecture
 
-| Technology                  | Role                   | Why We Used It (In Simple Words)                                                                                                         |
-| :-------------------------- | :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **Next.js 15 (App Router)** | Full-Stack Framework   | Acts as **both** the React frontend UI and the backend REST API server in a single project. No need to run a separate backend server!    |
-| **TypeScript**              | Language               | Provides strict type safety, prevents runtime bugs, and makes code maintainable and easy to understand.                                  |
-| **PostgreSQL (`pg`)**       | Database               | Industry-standard relational database. We use the native `pg` (`node-postgres`) connection pool for high-performance SQL queries.        |
-| **Redis & BullMQ**          | Task Queue & Scheduler | Handles distributed job queues and repeating cron schedules for background workers (with an automatic in-memory fallback for local dev). |
-| **Tailwind CSS**            | Styling                | Provides a modern, responsive, dark-mode SaaS dashboard design out of the box.                                                           |
-| **Recharts**                | Data Visualization     | Renders smooth, interactive latency graphs and response-time distribution charts.                                                        |
-| **Axios**                   | HTTP Client            | Performs high-precision HTTP health checks and accurately measures latency in milliseconds.                                              |
-| **Nodemailer**              | Email Delivery         | Delivers styled HTML alert emails to user inboxes when an API goes DOWN or RECOVERED.                                                    |
+| Technology                  | Role                   | Why We Used It                                                                                                   |
+| :-------------------------- | :--------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| **Next.js 15 (App Router)** | Full-Stack Framework   | Unifies React frontend UI and backend REST API server in a single high-performance project.                      |
+| **TypeScript**              | Language               | End-to-end type safety across database queries, assertion evaluations, and UI components.                        |
+| **PostgreSQL (`pg`)**       | Database               | Enterprise relational database with connection pooling and automated schema migrations.                          |
+| **Redis & BullMQ**          | Task Queue & Scheduler | Distributed job queues and recurring cron scheduling for background workers with in-memory dev fallback.         |
+| **Tailwind CSS**            | Styling                | Modern, responsive dark-mode SaaS dashboard design with custom badge styling.                                    |
+| **Recharts**                | Data Visualization     | Smooth, interactive latency line charts and response-time distribution graphs.                                   |
+| **Axios**                   | HTTP Client            | Precise HTTP health checks and millisecond-level latency benchmarking.                                           |
+| **TLS / Node.js `tls`**     | SSL Inspector          | Low-level socket handshake inspection for certificate authority details, valid dates, and TLS protocol versions. |
+| **Nodemailer**              | Email Delivery         | Styled HTML alert emails when monitors trigger outages or recover.                                               |
 
 ---
 
-## 🧠 4. How It Works (The Architectural Approach)
+## 🧠 4. Architectural Data Flow
 
 ```
  ┌────────────────────────────────────────────────────────┐
  │                    User Interface                      │
- │    Dashboard UI  •  Analytics Charts  •  Status Page   │
+ │   Dashboard UI  •  Incident Hub  •  Public Status Page │
  └─────────────────────────┬──────────────────────────────┘
                            │ (REST API)
  ┌─────────────────────────▼──────────────────────────────┐
  │               Next.js Backend API Server               │
- │       (/api/monitors, /api/alerts, /api/status)        │
+ │  (/api/monitors, /api/alerts, /api/incidents, /status) │
  └─────────────────────────┬──────────────────────────────┘
                            │
  ┌─────────────────────────▼──────────────────────────────┐
  │               PostgreSQL Database (pg)                 │
- │  (monitors, ping_logs, incidents, alert_channels)      │
+ │   monitors • ping_logs • incidents • incident_updates  │
  └─────────────────────────┬──────────────────────────────┘
                            │
  ┌─────────────────────────▼──────────────────────────────┐
  │               Background Worker Engine                 │
  │  1. Pings target URL & records latency (ms)            │
- │  2. Validates Expected Status (e.g. 200) vs Actual     │
- │  3. Checks Timeout Threshold (e.g. 10,000ms)           │
- │  4. Increments failure counter if check fails          │
- │  5. If counter >= threshold -> Set DOWN & Send Alert   │
- │  6. If service recovers -> Set UP & Send Recovery      │
+ │  2. Evaluates JSON assertions & regex rules            │
+ │  3. Probes SSL handshake & days to expiry              │
+ │  4. Increments failure count on assertion/ping fail    │
+ │  5. If counter >= threshold -> Set DOWN & Open Incident│
+ │  6. If service recovers -> Set UP & Send Alerts        │
  └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📂 5. Database Tables Breakdown
+## 📂 5. Database Schema Breakdown
 
-1. **`users`**: Developer profile and account details.
-2. **`monitors`**: Target API endpoint configuration (URL, method, headers, expected status, timeout limit, check interval, status `UP`/`DOWN`).
+1. **`users`**: Developer profile and account credentials.
+2. **`monitors`**: Target API endpoint configuration (URL, method, headers, JSON body, expected status, timeout limit, interval, status `UP`/`DOWN`, `assertions` JSON, `ssl_valid`, `ssl_days_remaining`, `ssl_issuer`, `ssl_valid_to`, `ssl_checked_at`).
 3. **`ping_logs`**: Time-series log for every health check (status code, latency ms, success state, error reason, timestamp).
-4. **`incidents`**: Tracks downtime events (`OPEN` vs `RESOLVED`, outage start time, recovery time, cause).
-5. **`alert_channels`**: Destinations to notify on outage (`EMAIL` address or `WEBHOOK` URL).
-6. **`status_pages`**: Public status page configuration.
+4. **`incidents`**: Tracks downtime events (`title`, `severity`, `status`, outage start time, recovery time, cause).
+5. **`incident_updates`**: Multi-stage progress update notes (`incident_id`, `status`, `message`, `created_at`).
+6. **`alert_channels`**: Notification channels (`EMAIL` or `WEBHOOK` URL).
+7. **`status_pages`**: Public status page configuration and slug settings.
 
 ---
 
@@ -98,14 +113,15 @@ When companies build software, their backend APIs and microservices can crash, s
 ### Prerequisites
 
 - **Node.js** (v18 or higher)
-- **PostgreSQL** (Installed locally or via pgAdmin / Cloud PostgreSQL)
+- **PostgreSQL** (Local or Cloud instance e.g. Neon, Supabase)
+- **Redis** _(Optional for local development; in-memory fallback included)_
 
 ---
 
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/api-monitoring-platform.git
+git clone https://github.com/ajaykumar-21/api-monitoring-platform.git
 cd api-monitoring-platform
 ```
 
@@ -123,7 +139,7 @@ Copy `.env.example` to `.env`:
 cp .env.example .env
 ```
 
-Open `.env` and set your PostgreSQL connection string:
+Configure your connection credentials:
 
 ```env
 DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/api_sentinel"
@@ -145,12 +161,12 @@ Run the database initialization script:
 npm run db:init
 ```
 
-_(This automatically creates the database and all 6 tables in PostgreSQL!)_
+_(This automatically creates all tables and runs non-breaking column migrations in PostgreSQL!)_
 
-### Step 5: Start the Application
+### Step 5: Start the Full-Stack App
 
 ```bash
-# Terminal 1: Start Next.js Full-Stack App (Dashboard & REST API)
+# Terminal 1: Start Next.js App (Dashboard, REST API & Public Status Pages)
 npm run dev
 ```
 
@@ -158,7 +174,7 @@ Open **[http://localhost:3000/dashboard](http://localhost:3000/dashboard)** in y
 
 ### Step 6: (Optional) Start the Background Worker
 
-To execute automatic periodic checks in the background:
+To run continuous background pings and SSL checks:
 
 ```bash
 # Terminal 2: Start Background Worker
@@ -167,13 +183,22 @@ npm run worker
 
 ---
 
-## 🧪 7. Verification & Build Commands
+## 🧪 7. Verification & Testing Commands
 
 ```bash
-# Type-check TypeScript code
-npx tsc --noEmit
+# Run TypeScript static type check
+npm run type-check
 
-# Test Production Build
+# Run JSON Assertions Engine test suite (17 test cases)
+npm run test:assertions
+
+# Run SSL / TLS Certificate Checker test suite
+npm run test:ssl
+
+# Run Incident Timeline & Lifecycle test suite
+npm run test:incidents
+
+# Test Production Build Compilation
 npm run build
 
 # Start Production Server
@@ -195,14 +220,14 @@ This project includes an automated **GitHub Actions CI/CD Pipeline** (`.github/w
  │             Continuous Integration (CI)                │
  │  1. Checkout code & Setup Node.js 20 environment       │
  │  2. Install dependencies with `npm ci`                 │
- │  3. Run TypeScript static type check (`npx tsc`)       │
+ │  3. Run TypeScript static type check (`npm type-check`)│
  │  4. Verify production build compilation (`npm build`)  │
  └─────────────────────────┬──────────────────────────────┘
                            │ (If all checks pass 🟢)
  ┌─────────────────────────▼──────────────────────────────┐
  │             Continuous Deployment (CD)                 │
  │  • Automatically deploys live build to Vercel          │
- │  • Automated 1-minute health cron worker (cron-job.org)│
+ │  • Automated health check cron trigger via cron-job.org│
  └────────────────────────────────────────────────────────┘
 ```
 
