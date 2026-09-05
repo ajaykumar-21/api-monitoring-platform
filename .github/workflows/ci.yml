@@ -11,10 +11,6 @@ jobs:
     name: Type Check & Build
     runs-on: ubuntu-latest
 
-    env:
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/api_sentinel"
-      NODE_ENV: "production"
-
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -25,11 +21,14 @@ jobs:
           node-version: 20
           cache: "npm"
 
-      - name: 📦 Install Dependencies
-        run: npm ci
+      - name: 📦 Install Dependencies (including devDependencies)
+        run: npm ci --include=dev
 
       - name: 🔍 TypeScript Type Check
         run: npm run type-check
 
       - name: 🏗️ Verify Production Build
         run: npm run build
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/api_sentinel"
+          NODE_ENV: "production"
