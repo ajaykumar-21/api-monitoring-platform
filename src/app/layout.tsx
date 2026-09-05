@@ -1,25 +1,20 @@
-import "./globals.css";
-import Link from "next/link";
-import { Activity, Plus, ShieldCheck, Bell, Radio } from "lucide-react";
+import './globals.css';
+import Link from 'next/link';
+import { Activity, Plus, ShieldCheck, Bell, Radio } from 'lucide-react';
 
 export const metadata = {
-  title: "API Sentinel | Uptime & Performance Monitoring",
-  description:
-    "Real-time API uptime monitoring, latency tracking, incident management, and status pages.",
+  title: 'API Sentinel | Uptime & Performance Monitoring',
+  description: 'Real-time API uptime monitoring, latency tracking, incident management, and status pages.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-[#0b0f19] text-gray-100 min-h-screen flex flex-col antialiased">
         <header className="border-b border-gray-800 bg-[#111625]/80 backdrop-blur sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-3 group">
+              <Link href="/dashboard" className="flex items-center space-x-3 group">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
                   <Activity className="w-6 h-6 text-slate-950 stroke-[2.5]" />
                 </div>
@@ -70,21 +65,15 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </main>
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
 
         <footer className="border-t border-gray-800/80 bg-[#0d111c] py-6 text-center text-xs text-gray-500">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>
-                API Sentinel Monitor Platform — SaaS Portfolio Project
-              </span>
+              <span>API Sentinel Monitor Platform — SaaS Portfolio Project</span>
             </div>
-            {/* <div>
-              Powered by Next.js 15, Node.js, PostgreSQL (pg), BullMQ & Redis
-            </div> */}
+            <div>Powered by Next.js 15, Node.js, PostgreSQL (pg), BullMQ & Redis</div>
           </div>
         </footer>
       </body>
