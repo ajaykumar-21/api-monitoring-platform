@@ -1,12 +1,14 @@
-import { Pool, Client } from 'pg';
+import { Pool, Client } from "pg";
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/api_sentinel';
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgresql://postgres:postgres@localhost:5432/api_sentinel";
 
 const isCloudDb =
-  connectionString.includes('neon.tech') ||
-  connectionString.includes('render.com') ||
-  connectionString.includes('supabase.co') ||
-  connectionString.includes('sslmode=require');
+  connectionString.includes("neon.tech") ||
+  connectionString.includes("render.com") ||
+  connectionString.includes("supabase.co") ||
+  connectionString.includes("sslmode=require");
 
 const globalForPg = globalThis as unknown as {
   pgPool: Pool | undefined;
@@ -22,7 +24,7 @@ export const pool =
     connectionTimeoutMillis: 10000,
   });
 
-if (process.env.NODE_ENV !== 'production') globalForPg.pgPool = pool;
+if (process.env.NODE_ENV !== "production") globalForPg.pgPool = pool;
 
 export async function query(text: string, params?: any[]) {
   const start = Date.now();
@@ -35,19 +37,29 @@ export async function initDb() {
   if (!isCloudDb) {
     try {
       const url = new URL(connectionString);
-      const dbName = url.pathname.replace('/', '') || 'api_sentinel';
-      const baseUrl = connectionString.replace(url.pathname, '/postgres');
+      const dbName = url.pathname.replace("/", "") || "api_sentinel";
+      const baseUrl = connectionString.replace(url.pathname, "/postgres");
 
-      const rootClient = new Client({ connectionString: baseUrl });
+      const rootClient = new Client({
+        connectionString: baseUrl,
+        connectionTimeoutMillis: 5000,
+      });
       await rootClient.connect();
 
-      const checkDbRes = await rootClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
+      const checkDbRes = await rootClient.query(
+        "SELECT 1 FROM pg_database WHERE datname = $1",
+        [dbName],
+      );
       if (checkDbRes.rows.length === 0) {
-        console.log(`📦 Database "${dbName}" not found. Creating database automatically...`);
+        console.log(
+          `📦 Database "${dbName}" not found. Creating database automatically...`,
+        );
         try {
           await rootClient.query(`CREATE DATABASE "${dbName}"`);
         } catch {
-          await rootClient.query(`CREATE DATABASE "${dbName}" TEMPLATE template0`);
+          await rootClient.query(
+            `CREATE DATABASE "${dbName}" TEMPLATE template0`,
+          );
         }
         console.log(`✅ Database "${dbName}" created!`);
       }
@@ -131,5 +143,5 @@ export async function initDb() {
   `;
 
   await query(createTablesSQL);
-  console.log('✅ PostgreSQL database tables and indexes initialized!');
+  console.log("✅ PostgreSQL database tables and indexes initialized!");
 }
