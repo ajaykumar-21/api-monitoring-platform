@@ -93,7 +93,49 @@ When companies build software, their backend APIs and microservices can crash, s
 
 ---
 
-## 🚀 6. Step-by-Step Installation & Setup
+## 🐳 Quickstart with Docker (Recommended)
+
+Run the entire platform (Web Dashboard + Background Worker + PostgreSQL Database + Redis Queue) with a single command:
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/ajaykumar-21/api-monitoring-platform.git
+cd api-monitoring-platform
+```
+
+### 2. Copy environment file
+
+```bash
+cp .env.example .env
+```
+
+### 3. Start all services
+
+```bash
+docker compose up --build -d
+```
+
+That's it!
+
+- **Web Dashboard & REST API**: [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+- **PostgreSQL Database**: Port `5432`
+- **Redis Queue**: Port `6379`
+- **Background Monitoring Worker**: Automatically running and pinging endpoints!
+
+To view logs or stop services:
+
+```bash
+# View live logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+```
+
+---
+
+## 🚀 6. Manual Installation & Setup (Without Docker)
 
 ### Prerequisites
 
