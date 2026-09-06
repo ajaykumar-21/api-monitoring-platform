@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "test:assertions": "tsx scripts/test-assertions.ts",
     "test:ssl": "tsx scripts/test-ssl.ts",
-    "test:incidents": "tsx scripts/test-incidents.ts"
+    "test:incidents": "tsx scripts/test-incidents.ts",
+    "redis:test": "tsx scripts/test-redis.ts"
   },
   "dependencies": {
     "axios": "^1.8.1",

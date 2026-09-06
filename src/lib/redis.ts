@@ -1,15 +1,26 @@
-import Redis from "ioredis";
-import { loadEnvConfig } from "@next/env";
+import Redis from 'ioredis';
+import { loadEnvConfig } from '@next/env';
 
 loadEnvConfig(process.cwd());
 
-const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+let rawUrl = (process.env.REDIS_URL || 'redis://localhost:6379').trim();
+// Strip any accidental 'redis-cli --tls -u' prefix
+const match = rawUrl.match(/(redis[s]?:\/\/[^\s]+)/);
+if (match) {
+  rawUrl = match[1];
+}
 
-export const redisClient = new Redis(redisUrl, {
+// Ensure TLS is enabled for Upstash
+const isUpstash = rawUrl.includes('upstash.io');
+if (isUpstash && rawUrl.startsWith('redis://')) {
+  rawUrl = rawUrl.replace('redis://', 'rediss://');
+}
+
+export const redisClient = new Redis(rawUrl, {
   maxRetriesPerRequest: null,
   lazyConnect: true,
+  tls: isUpstash ? { rejectUnauthorized: false } : undefined,
   retryStrategy(times) {
-    // Retry up to 3 times before entering quiet offline mode
     if (times > 3) {
       return null;
     }
@@ -17,10 +28,10 @@ export const redisClient = new Redis(redisUrl, {
   },
 });
 
-redisClient.on("error", (err) => {
-  if (process.env.NODE_ENV === "development") {
-    // Silent warn in dev mode if Redis is not running locally
+redisClient.on('error', (err) => {
+  if (process.env.NODE_ENV !== 'production') {
+    // Gracefully handle in dev mode
   } else {
-    console.error("[REDIS ERROR]", err.message);
+    console.error('[REDIS ERROR]', err.message);
   }
 });
