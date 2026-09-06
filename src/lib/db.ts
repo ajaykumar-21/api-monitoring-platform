@@ -3,6 +3,7 @@ import { loadEnvConfig } from "@next/env";
 
 loadEnvConfig(process.cwd());
 
+
 const connectionString =
   process.env.DATABASE_URL ||
   "postgresql://postgres:postgres@localhost:5432/api_sentinel";
@@ -43,7 +44,10 @@ export async function initDb() {
       const dbName = url.pathname.replace("/", "") || "api_sentinel";
       const baseUrl = connectionString.replace(url.pathname, "/postgres");
 
-      const rootClient = new Client({ connectionString: baseUrl });
+      const rootClient = new Client({
+        connectionString: baseUrl,
+        connectionTimeoutMillis: 5000,
+      });
       await rootClient.connect();
 
       const checkDbRes = await rootClient.query(

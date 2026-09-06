@@ -13,8 +13,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-api_sentinel}"]
-      interval: 5s
-      timeout: 5s
+      interval: 3s
+      timeout: 3s
       retries: 5
     networks:
       - api_sentinel_network
@@ -30,25 +30,9 @@ services:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
+      interval: 3s
+      timeout: 3s
       retries: 5
-    networks:
-      - api_sentinel_network
-
-  db-init:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: api_sentinel_db_init
-    command: npm run db:init
-    environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/api_sentinel}
-      NODE_ENV: production
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: on-failure
     networks:
       - api_sentinel_network
 
@@ -58,7 +42,7 @@ services:
       dockerfile: Dockerfile
     container_name: api_sentinel_app
     restart: unless-stopped
-    command: npm start
+    command: sh -c "npm run db:init && npm start"
     ports:
       - "3000:3000"
     environment:
@@ -76,14 +60,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      db-init:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 10s
     networks:
       - api_sentinel_network
 
@@ -108,8 +90,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      db-init:
-        condition: service_completed_successfully
     networks:
       - api_sentinel_network
 
